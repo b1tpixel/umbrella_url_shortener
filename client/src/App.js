@@ -9,13 +9,28 @@ class App extends Component {
     this.changeView = this.changeView.bind(this)
 
     this.state = {
+      recordsCount: 0,
       component: (<FormComponent changeView={this.changeView} />) 
     }
   }
 
+  fetchCounter(){
+    fetch('/get_count') 
+      .then(res => res.json())
+      .then(data => {
+        this.setState({
+          recordsCount: data.count,
+        })
+      })
+  }
+
+  componentDidMount(){
+    this.fetchCounter()
+  }
+
   changeView(comp, link){
-    debugger;
     if(comp === 'message' && link){
+      this.fetchCounter();
       this.setState({
         component: (<MessageComponent generatedLink={link} changeView={this.changeView}/>)
       });
@@ -33,6 +48,7 @@ class App extends Component {
         <Row>
           <Col xs={8} xsOffset={2}>
             <PageHeader>URL Shortener</PageHeader>
+            <h3>Now serving {this.state.recordsCount} URLs!</h3>
           </Col>
         </Row>
         <Row>
@@ -47,8 +63,8 @@ class MessageComponent extends Component {
   render(){
     return (
       <Col xs={8} xsOffset={2}>
-        <PageHeader>Your shortened URL is ready:</PageHeader>
-        <PageHeader><code>{this.props.generatedLink}</code></PageHeader>
+        <h3>Your shortened URL is ready:</h3>
+        <h3><code>{this.props.generatedLink}</code></h3>
         <Button className='pull-right btn btn-primary' onClick={()=>(this.props.changeView('form'))}>Make another</Button>
       </Col>  
     )

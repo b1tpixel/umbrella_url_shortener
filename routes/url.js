@@ -55,11 +55,21 @@ router.post('/shorten_url', function(req, res, next){
 				models.Url.create({shortened: randstring, original: req.body.url});
 				res.json({
 					createdUrl: `${req.host}/${randstring}`,
-					message: `Shortened URL ${req.host}/${randstring} created`
+					message: `Shortened URL ${req.host}/${randstring} created`,
+					status: 'success'
 				});
 			}
 		})
 	}
+})
+
+router.get('/get_count', function(req, res, next){
+	models.Url.count().then(result => {
+		res.json({
+			count: result,
+			status: 'success'
+		});
+	})
 })
 
 router.get('/*', function(req, res, next) {
