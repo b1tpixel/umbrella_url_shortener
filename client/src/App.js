@@ -4,20 +4,72 @@ import './App.css';
 
 
 class App extends Component {
-  state = {users: []}
+  constructor(props){
+    super(props);
+    this.changeView = this.changeView.bind(this)
 
+    this.state = {
+      component: (<FormComponent changeView={this.changeView} />) 
+    }
+  }
+
+  changeView(comp, link){
+    debugger;
+    if(comp === 'message' && link){
+      this.setState({
+        component: (<MessageComponent generatedLink={link} changeView={this.changeView}/>)
+      });
+    } else {
+      this.setState({
+        component: (<FormComponent changeView={this.changeView} />) 
+      })
+    }
+  }
+
+  render() {
+    let component = this.state.component
+    return (
+      <Grid>
+        <Row>
+          <Col xs={8} xsOffset={2}>
+            <PageHeader>URL Shortener</PageHeader>
+          </Col>
+        </Row>
+        <Row>
+          {component}
+        </Row>
+      </Grid>
+    );
+  }
+}
+
+class MessageComponent extends Component {
+  render(){
+    return (
+      <Col xs={8} xsOffset={2}>
+        <PageHeader>Your shortened URL is ready:</PageHeader>
+        <PageHeader><code>{this.props.generatedLink}</code></PageHeader>
+        <Button className='pull-right btn btn-primary' onClick={()=>(this.props.changeView('form'))}>Make another</Button>
+      </Col>  
+    )
+  }
+}
+
+class FormComponent extends Component {
   constructor(props){
     super(props);
     this.handleLinkChange = this.handleLinkChange.bind(this);
     this.handleCustomLinkChange = this.handleCustomLinkChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    
+
     this.state = {
       link: '',
       customlink: '',
       generatedLink: '',
       customValidationState: null,
       toggleInputError: false,
+      errorMsg: null,
+      isUrlExists: false,
     }
   }
 
@@ -29,16 +81,25 @@ class App extends Component {
     fetch('/custom_url_exists?custom='+val)
       .then(res => res.json())
       .then(data => {
-          if(data.isExists){
+          if(!/^[a-z0-9_-]+$/i.test(val)) {
+            debugger;
             this.setState({
-              customValidationState:'success',
-              toggleInputError: false
+              customValidationState: 'error',
+              toggleInputError: true,
+              errorMsg: 'Entered URL is invalid. Use only alphabetical, numerical, dash and underscore symbols',
+          })
+          } else if(!data.isExists) {
+            this.setState({
+              customValidationState: 'success',
+              toggleInputError: false,
             })
           } else {
-            this.setState({customValidationState:'error'})
-          }
-        }
-      )
+            this.setState({
+              customValidationState:'error',
+              toggleInputError: false,
+            })
+          } 
+      })
   }
 
   handleLinkChange(e){
@@ -55,12 +116,14 @@ class App extends Component {
   }
 
   handleSubmit(e){
-    debugger;
     e.preventDefault();
     if(this.state.customValidationState === 'error'){
       this.setState({
         toggleInputError: true,
       });
+      return;
+    }
+    if(!this.state.link){
       return;
     }
     fetch('/shorten_url/', {
@@ -83,76 +146,44 @@ class App extends Component {
           customlink: '',
         })
         this.checkCustomForDuplicates(null);
+        this.props.changeView('message', this.state.generatedLink)
     })
   }
-
-  render() {
+  
+  render(){
     const inputError = this.state.toggleInputError;
-    const generatedLink = this.state.generatedLink;
     let errorComp = null
     if (inputError){
       errorComp = (
-        <Alert bsStyle="warning">Entered URL is already exists. Try another one.</Alert>
-      )
-    }
-    let layout = (
-      <Grid>
-        <Row className="show-grid">
-          <Col xs={8} xsOffset={2}>
-            <PageHeader>URL Shortener</PageHeader>
-          </Col>
-        </Row>
-        <Row className="show-grid">
-          <Col xs={8} xsOffset={2}>
-            <form onSubmit={this.handleSubmit}>
-              <FormGroup>
-                <ControlLabel>Enter your link to shorten it:</ControlLabel>
-                <FormControl 
-                  onChange={this.handleLinkChange} 
-                  type="url" />
-              </FormGroup>
-              <ControlLabel>Customize your shortened link or just click "submit" to generate it:</ControlLabel>
-              <FormGroup 
-                validationState={this.state.customValidationState}
-              >
-                <InputGroup>
-                  <InputGroup.Addon>{window.location.host + '/'}</InputGroup.Addon>
-                  <FormControl 
-                    onChange={this.handleCustomLinkChange} 
-                    type="text"
-                  />
-                </InputGroup>
-                {errorComp}
-              </FormGroup>
-              <Button className='pull-right btn btn-primary' type='submit'>Submit</Button>
-            </form>
-          </Col>
-        </Row>
-      </Grid>
-    )
-    if(generatedLink){
-      layout = (
-        <Grid>
-          <Row>
-            <Col xs={8} xsOffset={2}>
-              <PageHeader>URL Shortener</PageHeader>
-            </Col>
-          </Row>
-          <Row>
-            <Col xs={8} xsOffset={2}>
-              <PageHeader>Your shortened URL is ready:</PageHeader>
-              <PageHeader><code>{generatedLink}</code></PageHeader>
-              <Button className='pull-right btn btn-primary' onClick={()=>{this.setState({generatedLink:null})}}>Make another</Button>
-            </Col>
-          </Row>
-        </Grid>
+        <Alert bsStyle="warning">{this.state.errorMsg}</Alert>
       )
     }
     return (
-      <div>
-        {layout}
-      </div>
-    );
+      <Col xs={8} xsOffset={2}>
+        <form onSubmit={this.handleSubmit}>
+          <FormGroup>
+            <ControlLabel>Enter your link to shorten it:</ControlLabel>
+            <FormControl 
+              onChange={this.handleLinkChange} 
+              type="url" />
+          </FormGroup>
+          <ControlLabel>Customize your shortened link or just click "submit" to generate it:</ControlLabel>
+          <FormGroup 
+            validationState={this.state.customValidationState}
+          >
+            <InputGroup>
+              <InputGroup.Addon>{window.location.host + '/'}</InputGroup.Addon>
+              <FormControl 
+                onChange={this.handleCustomLinkChange} 
+                type="text"
+              />
+            </InputGroup>
+            {errorComp}
+          </FormGroup>
+          <Button className='pull-right btn btn-primary' type='submit'>Submit</Button>
+        </form>
+      </Col>
+    )
   }
 }
 

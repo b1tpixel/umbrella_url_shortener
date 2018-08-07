@@ -8,11 +8,11 @@ router.get('/custom_url_exists', function(req, res, next) {
 		models.Url.findAll({where: {shortened: req.query.custom}}).then((result)=>{
 			if(result.length == 0){
 				res.json({
-					isExists: true,
+					isExists: false,
 				})
 			} else {
 				res.json({
-					isExists: false,
+					isExists: true,
 				})
 			}
 		})
@@ -24,7 +24,7 @@ const generateRandString = () => {
 }
 
 router.post('/shorten_url', function(req, res, next){
-	if(req.body.custom){
+	if(req.body.custom && /^[a-z0-9_-]+$/i.test(req.body.custom)){
 		models.Url.findAll({where: {shortened: req.body.custom}}).then((result)=>{
 			if(result.length == 0){
 				models.Url.create({shortened: req.body.custom, original: req.body.url}).then((result) => {
@@ -42,6 +42,12 @@ router.post('/shorten_url', function(req, res, next){
 				}) 
 			}
 		})
+	} else if(req.body.custom && !/^[a-z0-9_-]+$/i.test(req.body.custom)) {
+		res.json({
+			createdUrl: null,
+			message: `Supplied shortened URL ${req.body.custom} is invalid`,
+			status: 'error'	
+		}) 
 	} else {
 		const randstring = generateRandString()
 		models.Url.findAll({where: {shortened: randstring}}).then(result =>{
@@ -55,6 +61,17 @@ router.post('/shorten_url', function(req, res, next){
 		})
 	}
 })
+
+router.get('/*', function(req, res, next) {
+	models.Url.findAll({where: {shortened:req.url.substr(1,)}}).then(result => {
+		if(result.length == 0){
+			res.redirect('/')
+		} else {
+			res.redirect(result[0].original);
+		}
+	})
+});
+  
 
 
 module.exports = router;
