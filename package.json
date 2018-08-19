@@ -2,13 +2,17 @@
   "name": "react-backend",
   "version": "0.0.0",
   "private": true,
+  "main": "./bin/www",
   "scripts": {
     "start": "node ./bin/www",
-    "heroku-postbuild": "cd client/ && npm install && ng build",
     "client": "cd client && npm start",
-    "dev": "concurrently --kill-others-on-fail \"npm run start\" \"npm run client\""
+    "dev": "concurrently --kill-others-on-fail \"npm run start\" \"npm run client\"",
+    "postinstall": "cd client/ && npm install && ng build -prod"
   },
   "dependencies": {
+    "@angular/cli": "^6.1.4",
+    "@angular/compiler-cli": "^6.1.0",
+    "angular": "^1.7.3",
     "concurrently": "^3.6.1",
     "cookie-parser": "~1.4.3",
     "cors": "^2.8.4",
