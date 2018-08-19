@@ -1,0 +1,39 @@
+<form>
+  <div class="form-group">
+    <label for="original-url">Enter URL to shorten:</label>
+    <div class="input-group">
+      <input 
+        [(ngModel)]="original" 
+        (input)="onOriginalInput()"
+        name="original" 
+        type="url" 
+        class="form-control {{originalInputStatus}}" 
+        id="original-url" 
+        placeholder="Original URL goes here">
+        <div class="invalid-feedback">
+          Please, enter valid URL
+        </div>
+      </div>
+  </div>
+  <div class="form-group">
+      <label for="custom-url">Customize your shortened URL:</label>
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <span class="input-group-text" id="inputGroupPrepend">{{location}}</span>
+        </div>
+        <input 
+          [(ngModel)]="custom" 
+          (input)="onCustomInput()"
+          name="custom" 
+          type="text" 
+          class="form-control {{customInputStatus}}"
+          aria-describedby="inputGroupPrepend"
+          id="custom-url" 
+          placeholder="Custom string goes here">
+        <div class="invalid-feedback">
+          This custom URL is already in use. Please, choose the other one.
+        </div>
+      </div>
+  </div>
+  <button class="btn btn-primary float-right" (click)='submitURL($event)'>Submit</button> 
+</form>

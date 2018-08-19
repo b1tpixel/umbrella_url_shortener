@@ -1,0 +1,20 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 offset-md-2 text-center">
+      <h1>Url Shortener</h1>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-8 offset-md-2 justify-content-center">
+      
+    <div *ngIf="!createdUrl; else showSuccessView">
+        <app-url-input (urlCreated)="showSuccess($event)"></app-url-input>
+    </div>
+    <ng-template #showSuccessView>
+      <app-success-view (backToForm)="backToForm($event)" [createdUrl]="createdUrl"></app-success-view>
+    </ng-template>
+    </div>
+  </div>
+</div>
+
+
